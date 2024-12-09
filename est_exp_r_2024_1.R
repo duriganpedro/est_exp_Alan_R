@@ -20,3 +20,5 @@ hist(x)
 mean(x)
 sd(x)
 skewness(x)
+
+#plotar grafico de x^2
