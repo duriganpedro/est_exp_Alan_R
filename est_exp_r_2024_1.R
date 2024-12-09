@@ -37,5 +37,93 @@ skewness(x)
 338.59
 # 4 - Boleano (lógico)
 #Operação Relacional
+#Operadores Lógicos
+#Negação !
+#Disjunção |
+#Conjunção &
+#Igual ==
+#Diferente !=
+#Maior >
+#Menor <
+#Maior ou Igual >=
+#Menor ou Igual <=
 3>5
 3<5
+2>=2
+2<=2
+3==3
+3!=3
+
+#Operadores Aritméticos
+#Soma +
+#Subtração -
+#Multiplicação *
+#Divisão /
+#Resto da Divisão %%
+#Divisão Inteira %/%
+#Potência ^
+#Raiz Quadrada sqrt()
+#Logaritmo natural log()
+#Logaritmo com base 10 log10()
+#Logaritmo com base 2 log2()
+#Exponencial exp()
+
+#Exemplos:
+3+5
+3-5
+3*5
+3/5
+3%%5
+3%/%5
+3^5
+sqrt(3)
+cbrt(3)
+log(3)
+log10(3)
+log2(3)
+exp(3)
+2^4
+2.5/2
+2.5%/%2
+2.5%%2
+# 583245 pra extrair só os dois primeiros numeros
+583245%%100
+583245%%10000 %/% 100
+
+#Funções
+sqrt(225)
+81^1/3
+
+#Funçoes Trigonometricas em radianos
+pi
+sin(30*pi/180)
+log(10)
+
+#Funções Logaritmicas
+exp(1)
+
+factorial(28)
+choose(13,3)*choose(15,3)/choose(28,6)
+
+
+##Operadores Lógicos
+
+##################
+# A # B #     A&B
+# V # V #     V
+# V # F #     F
+# F # V #     F
+# F # F #     F 
+##################
+
+# Conjunção - E
+TRUE & TRUE
+TRUE & FALSE
+FALSE & TRUE
+FALSE & FALSE
+
+# Disjunção - OU
+TRUE | TRUE
+TRUE | FALSE
+FALSE | TRUE
+FALSE | FALSE
