@@ -22,4 +22,20 @@ sd(x)
 skewness(x)
 
 #tipos primitivos
-
+# 1 - Caracter
+"Nome e Sobrenome"
+"B"
+'1'
+'Jaboticabal'
+# 2 - Numéricos Inteiros
+-5
+2
+0
+# 3 - Numéricos Reais (Double)
+3.14
+1.5
+338.59
+# 4 - Boleano (lógico)
+#Operação Relacional
+3>5
+3<5
