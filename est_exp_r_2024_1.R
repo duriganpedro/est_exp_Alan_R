@@ -12,4 +12,11 @@
 # install.packages("lawstat")
 #tidyverse
 # install.packages("tidyverse")
-#teste
+#carregar Pacotes
+library(agricolae)
+set.seed(1235)#semente aleatorea
+x = rnorm(10000) #gera numeros aleatórios
+hist(x)
+mean(x)
+sd(x)
+skewness(x)

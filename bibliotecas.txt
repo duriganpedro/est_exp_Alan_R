@@ -1,0 +1,75 @@
+#' #'Pacotes Específicos para Assimetria e Estatísticas Descritivas
+#' moments
+#' 
+#' Função: skewness(x)
+#' Objetivo: Cálculo direto da assimetria e curtose.
+#' e1071
+#' 
+#' Função: skewness(x, type)
+#' Objetivo: Estatísticas básicas, como assimetria com diferentes métodos.
+#' fBasics
+#' 
+#' Função: skewness(x)
+#' Objetivo: Estatísticas descritivas voltadas para séries temporais financeiras.
+#' psych
+#' 
+#' Função: describe(x)$skew
+#' Objetivo: Estatísticas psicométricas detalhadas, incluindo assimetria.
+#' DescTools
+#' 
+#' Função: Skew(x)
+#' Objetivo: Estatísticas descritivas, com cálculos simples de assimetria.
+#' PerformanceAnalytics
+#' 
+#' Função: skewness(x)
+#' Objetivo: Estatísticas voltadas para análise de desempenho financeiro.
+#' Pacotes para Visualização e Análise Exploratória
+#' tidyverse
+#' 
+#' Função: ggplot2 para histogramas e densidades.
+#' Objetivo: Visualização para entender a assimetria de distribuições.
+#' Hmisc
+#' 
+#' Função: describe(x)
+#' Objetivo: Estatísticas descritivas e relatórios resumidos.
+#' ggpubr
+#' 
+#' Função: ggdensity() ou gghistogram()
+#' Objetivo: Visualizações específicas para distribuições.
+#' Pacotes Avançados para Distribuições
+#' moments
+#' Função: skewness()
+#' Objetivo: Estatísticas de forma detalhada (curtose e assimetria).
+#' car
+#' Função: densityPlot()
+#' Objetivo: Análise de densidade e distribuições.
+#' nortest
+#' Função: ad.test(), lillie.test()
+#' Objetivo: Testes de normalidade relacionados a assimetria.
+#' Pacotes Estatísticos e de Machine Learning
+#' caret
+#' Função: Permite pré-processar dados com transformação Box-Cox para ajustar assimetria.
+#' Objetivo: Ajuste da distribuição para aprendizado de máquina.
+#' MLmetrics
+#' Função: Estatísticas descritivas avançadas.
+#' Objetivo: Análise de distribuições para problemas de aprendizado de máquina.
+#' Pacotes para Modelagem Estatística
+#' stats (pacote base do R)
+#' Função: skewness() (via pacotes auxiliares).
+#' Objetivo: Modelagem básica e estatísticas descritivas.
+#' MASS
+#' Função: Transformação Box-Cox para reduzir assimetria.
+#' Objetivo: Ajuste de modelos e distribuições assimétricas.
+#' Pacotes Complementares
+#' EnvStats
+#' Função: skewness()
+#' Objetivo: Estatísticas ambientais, incluindo medidas de forma.
+#' FitDist
+#' Função: skewness()
+#' Objetivo: Ajuste e avaliação de distribuições com base na assimetria.
+#' moments4
+#' Função: Extensões do pacote moments para análise mais profunda.
+#' Objetivo: Medidas avançadas de assimetria.
+#' sn (Skew-Normal Distributions)
+#' Função: dsn(), rsn()
+#' Objetivo: Ajuste e análise de distribuições assimétricas específicas.
