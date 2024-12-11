@@ -110,6 +110,7 @@ choose(13,3)*choose(15,3)/choose(28,6)
 
 ##################
 # A # B #     A&B
+##################
 # V # V #     V
 # V # F #     F
 # F # V #     F
@@ -127,3 +128,26 @@ TRUE | TRUE
 TRUE | FALSE
 FALSE | TRUE
 FALSE | FALSE
+#Negação - NOT
+!TRUE
+!FALSE
+
+#ATRIBUIÇÃO (Alt - )
+
+x<-5 #atribui o valor 5 ao objeto y
+y=6
+
+#Regras para bons indicadores
+# - Nunca iniciado com números
+# - Não pode ter espaços
+# - pode ter "______"
+# - Nao pode ter palavras reservadas
+# - Nao pode ter simbolos especiais
+# - Nao pode ter letras maiusculas
+# - Nao pode ter acentuacaos
+# - Deve fazer sentido para o programador
+#####################################################
+
+#precisamos de um objeto para guardar a data de nascimento de uma pessoa
+niver <- "01/01/2024"
+niver
