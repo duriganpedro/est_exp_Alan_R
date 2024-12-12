@@ -1,0 +1,153 @@
+---
+title: "Lista 6"
+author: "Pedro Barbieri Durigan"
+date: "2024-12-12"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message=FALSE,
+                      error=FALSE,
+                      warning=FALSE
+                      )
+```
+
+##carregando os pacotes
+#vamos carregar os pacotes**tidyverse** e **readxl**.
+
+#Para criar uma "Chunk" utilize (ctrl+Alt+I)
+```{r}
+library(tidyverse) #carregando pacote
+library(readxl)
+```
+
+
+#carregar um arquivo de dados
+```{r}
+dados<-read_rds("../data/geomorfologia.rds")
+dados
+```
+##construir os histogramas pra todas as variaveis
+
+```{r}
+nomes_vari<-dados |> select(amg:v) |> names()
+for(i in seq_along(nomes_vari)){
+plot_hist<-dados |>
+  ggplot(aes_string(x=nomes_vari[i])) +
+  geom_histogram(
+    bins=10,
+    color="black",
+    fill="lightgray"
+  )+
+  theme_minimal()
+print(plot_hist)
+}
+```
+
+
+```{r}
+library(DT)
+dados |> 
+  datatable()
+```
+
+
+#Gráfico de Barras de Erros
+
+Agrupar os dados por superficies, criar o resumo com
+média e desvio padrao para os dados de argila...
+
+```{r}
+dados |> 
+  group_by(sup) |> 
+  summarise(
+    media=mean(argila),
+    desvpad=sd(argila),
+    epm=desvpad/sqrt(n())
+  ) |> 
+  ggplot(aes(x=sup,y=media))+
+  geom_col(
+    color="black",
+    fill="lightgray"
+    )+
+  geom_errorbar(
+    aes(
+      ymax=media+epm,
+      ymin=media-epm),
+                color="red",
+                width=0.25,)+
+    # Ajuste estético do tema
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5),
+    panel.grid.major = element_line(color = "gray85"),
+    panel.grid.minor = element_blank(),
+  )
+```
+
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(viridis)
+
+dados |> 
+  group_by(sup) |>
+  summarise(
+    media = mean(argila),
+    desvpad = sd(argila),
+    epm = desvpad / sqrt(n())
+  ) |>
+  ggplot(aes(x = sup, y = media, fill = sup)) +
+  # Barras
+  geom_col(
+    color = "gray10",
+    width = 0.7
+  ) +
+  # Barras de erro
+  geom_errorbar(
+    aes(ymax = media + epm, ymin = media - epm),
+    color = "gray20",
+    width = 0.25
+  ) +
+  # Títulos e rótulos
+  labs(
+    title = "Média de Argila por Categoria",
+    subtitle = "Barras de erro representam o Erro Padrão da Média (EPM)",
+    x = NULL,
+    y = "Média de Argila (%)",
+    fill = "Sup"
+  ) +
+  # Paleta de cores suave
+  scale_fill_manual(values = c("#4D4D4D", "#A6A6A6", "#E0E0E0")) +
+  # Ajustes do tema
+  theme_minimal(base_size = 12, base_family = "Times New Roman") +
+  [
+    theme(
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    plot.subtitle = element_text(color="gray10",
+                                 hjust = 0.5),
+    panel.grid.major = element_line(color = "gray85"),
+    panel.grid.minor = element_blank(),
+    panel.border = element_rect(color = "gray10", fill = NA, size = 0.7),
+    panel.background = element_rect(fill = "white", color = NA),
+    plot.background = element_rect(fill = "white", color = NA),
+    legend.position = c(0.90, 0.80),
+    legend.background = element_rect(fill = alpha("white", 0.8), color = "gray10"),
+    legend.key = element_blank(),
+    legend.title = element_text(
+      face = "bold",
+      color="gray20")
+  )
+
+```
+
+
+
+
+
