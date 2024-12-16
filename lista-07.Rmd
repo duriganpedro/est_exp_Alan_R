@@ -1,0 +1,97 @@
+---
+title: "Lista-07"
+subtitle: "Análise de dados de remoção de carbono (Peru)"
+author: "Panosso, AR"
+date: "16-12-2024"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      error = FALSE,
+                      warning = FALSE)
+```
+
+### Roteiro da análise
+
+  1. Download
+  1. Faxina de dados
+  1. Pré-processamento
+  1. Análise estatística descritiva
+  1. Análise multivariada exploratória para a série temporal
+  1. Mapeamento
+
+### Download
+
+Dados podem ser encontrados em [Climate TRACE](www.climatetrace.org). Vários arquivos do tipo `.csv` se encontram na pasta `data-raw/per`, referentes a diferentes fontes de emissão de gases do efeito estufa para o país.
+
+### Faxina de dados
+
+### Carregando os pacotes.
+```{r}
+library(tidyverse)
+library(readxl)
+library(abjutils)
+```
+
+### Ler os arquivos .csv
+
+### Criar a lista de arquivos
+
+```{r}
+
+```
+
+### Carregar apenas 01 arquivo.
+
+```{r}
+
+```
+
+### Criar uma função para ler os arquivos.
+
+```{r}
+
+```
+
+### Aplicar a função para todos os arquivos da lista.
+
+```{r}
+
+
+```
+
+### Pré-processamento
+
+A patir da coluna `end_time`, criar o ano e o mês referente à avaliação, filtrar os dados para emissão de $CO_2$ equivalente 100 anos `co2e_100yr`. Não se esqueça de filtrar o nome do país.
+
+Criar viasualizações de dados, levando-se em consideração que para os cálculos de emissão de um local os setor de uso da terra e florestas deve ser desconsiderado.
+
+```{r}
+
+```
+
+### Análise estatística descritiva
+
+Quais as principais localidades emissoras, crie um ranking com os top $10$ emissores para os útimos $5$ anos.
+
+```{r}
+
+```
+
+### Análise multivariada exploratória para a série temporal
+
+```{r}
+ 
+```
+
+
+#### Análise de agrupamento hierárquico
+
+```{r}
+ 
+
+```
+
+#### Análise de Componentes Principais

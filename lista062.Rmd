@@ -1,6 +1,12 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
 ```{r}
 library(tidyverse)
 dados <- read_rds("../data/geomorfologia.rds")
+dados
 glimpse(dados)
 dados |>
   ggplot(
@@ -24,7 +30,7 @@ trat
 
 ##Criar modelo para ánalise
 ```{r}
-mod<-aov(y~trat)
+mod<-aov(yt~trat)
 mod
 
 ```
@@ -53,7 +59,7 @@ yp
 ```{r}
 diagnostico<-tibble(
   trat,
-  y,
+  yt,
   yp,
   rs
 )
@@ -148,11 +154,24 @@ nortest::cvm.test(rs)#nao rejeitamos H0
 diagnostico |> 
   ggplot(aes(
     x=trat,
+    y=yt,
+    fill=trat,
+  )
+  )+
+    geom_boxplot()
+
+
+###############################
+diagnostico |> 
+  ggplot(aes(
+    x=trat,
     y=y,
     fill=trat,
   )
   )+
     geom_boxplot()
+
+#
   
 diagnostico |>
   ggplot(aes(x = trat, y = y, fill = trat)) +
@@ -183,6 +202,41 @@ diagnostico |>
     plot.title = element_text(hjust = 0.5, face = "bold")
   )
 
+
+
+
+#####################
+
+diagnostico |>
+  ggplot(aes(x = trat, y = yt, fill = trat)) +
+  # Gráfico de violino com ajuste na largura
+  geom_violin(trim = FALSE, alpha = 0.7, scale = "width") +
+  
+  # Adicionar pontos individuais com jitter para visualizar a distribuição
+  geom_jitter(width = 0.1, alpha = 0.5, size = 1.5, color = "black") +
+  
+  # Adicionar a mediana de forma destacada
+  stat_summary(fun = median, geom = "crossbar", 
+               width = 0.3, color = "white", 
+               fatten = 2, linetype = "solid") +
+  
+  # Ajuste de escala de cor (ex: viridis - requer library(viridis) ou scale_fill_viridis_c)
+  scale_fill_brewer(palette = "Pastel1") +
+  
+  # Título e rótulos
+  labs(title = "Distribuição por Tratamento", 
+       x = "Tratamento", 
+       y = "Resposta",
+       fill = "Tratamento") +
+  
+  # Tema minimalista
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "top",
+    plot.title = element_text(hjust = 0.5, face = "bold")
+  )
+
+
 ```
 
 
@@ -208,8 +262,7 @@ diagnostico |>
   group_by(trat) |> 
   summarise(
     log_media=log(mean(y)),
-    log_variancia=log(var(y))
-  ) |> 
+    log_variancia=log(var(y)) |> 
   ggplot(
     aes(
       x=log_media,
@@ -219,8 +272,7 @@ diagnostico |>
   geom_point()+
   geom_smooth(
     method = "lm",
-              se=FALSE
-    )
+    se=FALSE)
 
 #Análise de regressão
 modelo_linear<-lm(log_variancia~log_media,
@@ -233,4 +285,65 @@ modelo_linear<-lm(log_variancia~log_media,
 )
 ```
 
+```{r}
+#transformação Box and Cox
+
+box_cox<-MASS::boxcox(mod)
+box_cox |> as_data_frame() |> 
+  arrange(desc(y)) |>
+  slice(1) |> 
+  pull(x) 
+
+
+lambda<-box_cox |> 
+  as.data.frame() |> 
+  arrange(desc(y)) |> 
+  slice(1) |> 
+  pull(x) 
+
+yt<-y^lambda
+
+```
+
+
+```{r}
+#Estudo de outliers
+mod<-aov(y~trat)
+rs<-rstudent(mod)
+yp<-predict(mod)
+diagnostico<-tibble(trat,y,yp,rs) |> 
+  ggplot(
+    aes(
+      x=trat,
+      y=log_variancia
+      )
+    )+
+  geom_point()+
+  geom_smooth(
+    method = "lm",
+              se=FALSE
+    )
+# Estudo de outliers
+mod <- aov(y ~ trat)
+rs <- rstudent(mod)
+yp <- predict(mod)
+
+# Criando o tibble e o gráfico
+diagnostico <- tibble(trat, y, yp, rs) |> 
+  ggplot(aes(x = yp, y = rs)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+
+
+diagnostico
+
+
+
+
+```
+
+
+```{r}ggplot_gtable(data)
+
+```
 
