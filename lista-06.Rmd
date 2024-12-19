@@ -1,0 +1,104 @@
+---
+title: "Lista-06"
+author: "Panosso, A. R."
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      error = FALSE,
+                      warning = FALSE)
+```
+
+## Carregando os pacotes
+
+Vamos carregar os pacotes **tidyverse** e **readxl**.
+
+Para criar uma "Chunk" utilize (Control + Alt + I).
+
+```{r}
+library(tidyverse) # carregando pacote
+library(readxl)
+```
+
+## Carregar o arquivo de dados
+
+```{r}
+dados <- read_rds("../data/geomorfologia.rds")
+dados
+```
+
+## Constuir os histograma
+
+```{r}
+nomes_vari <- dados |> select(amg:v) |> names()
+for(i in seq_along(nomes_vari)){
+plot_hist <- dados |> # Control + Shift + M
+  ggplot(aes_string(x=nomes_vari[i])) +
+  geom_histogram(bins=10,color="black",fill="lightgray")+
+  theme_minimal()
+print(plot_hist)
+}
+```
+
+## Construir uma tabela de estatísticas descritivas
+
+```{r}
+library(DT)
+dados |> 
+  group_by(sup,solo) |> 
+  summarise(
+    N=n(),
+    Media= mean(amg)
+  ) |> 
+  datatable()
+```
+## Gráfico de Colunas com Barras de Erros
+
+Agrupar os dados por superfícies, criar o resumo com média e desvio padrão para os dados de argila...
+
+```{r}
+dados |> 
+  group_by(sup) |> 
+  summarise(
+    media = mean(argila),
+    desvpad = sd(argila),
+    epm = desvpad/sqrt(n()) 
+  ) |> 
+  ggplot(aes(x=sup, y= media)) +
+  geom_col(color="black",fill="lightgray") +
+  geom_errorbar(aes(ymax = media+epm,
+                    ymin = media-epm),
+                color="red", width=0.25,)+
+  theme_bw() +
+  labs(y="Médias dos Tratamentos",
+       x="Superfícies Geomórficas",
+       title = "Gráfico de Médias e Erro Padrão") +
+  theme(
+    plot.title = element_text(hjust = 0.5,
+                              face = "bold",
+                              size = 14)
+  )
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

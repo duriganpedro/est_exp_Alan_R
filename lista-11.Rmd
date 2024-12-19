@@ -1,0 +1,405 @@
+---
+title: "Lista-11"
+author: "Panosso, A. R."
+date: "18/12/2024"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      erro = FALSE,
+                      warning = FALSE)
+```
+
+
+## Roteiro para análise diagnóstico
+
+### Carregando Pacotes
+```{r}
+library(tidyverse)
+library(agricolae)
+library(ExpDes.pt) # <- ANOVA em português
+library(nortest)
+library(lawstat)
+library(MASS)
+library(HH) # <- teste de homogeneidade de variâncias
+source("../r/minhas-funcoes.R")
+theme_set(theme_bw()) # setar o tema padrão para o ggplot
+```
+
+### Entrada de Dados
+
+Para o exemplo, ler o arquivo **dados-crotalaria.rds**. Não se esqueça de deixar os tratamentos como fator.
+
+```{r}
+data_set <- read_rds("../data/dados-crotalaria.rds")
+glimpse(data_set)
+```
+
+### Estatística para os Tratamentos
+
+Estatísticas resumos por tratamento, gráficos histograma, boxplot e qqnorm.
+
+#### Estatística Descritiva
+
+```{r}
+data_set |> 
+  group_by(esp, dens) |> 
+  summarise(
+    n = n(),
+    media = mean(prod ,na.rm = TRUE),
+    desv_pad = sd(prod ,na.rm = TRUE),
+    erro_pad = desv_pad/sqrt(n)
+  )
+```
+
+#### Histograma da variável resposta
+
+```{r}
+data_set |> 
+  ggplot(aes(x=prod , y=..density..)) +
+  geom_histogram(color="black", fill="lightgray") +
+  labs(y = "Densidade", x = "Produção de Massa Seca")
+```
+
+#### Gráfico Boxplot
+
+Criar o boxplot ordenados por valor de média da variável alvo.
+
+```{r}
+data_set |> 
+  mutate(
+    trat = interaction(esp,dens)
+  ) |> 
+  group_by(trat) |> 
+  mutate(
+    media = mean(prod, na.rm = TRUE),
+    ) |>
+  ungroup() |> 
+  mutate(
+    trat = trat |> as_factor() |> fct_reorder(media)
+  ) |> 
+  ggplot(aes(x=trat, y=prod )) +
+  geom_boxplot(fill="lightgray") + 
+  geom_jitter(color="blue2") +
+  labs(x="Tratamentos", y="Produção de Vagens") 
+```
+
+#### QQ-plot
+
+```{r}
+data_set |> 
+  ggplot(aes(sample = prod)) +
+  stat_qq() +
+  stat_qq_line(color = "blue") +
+  labs(x="Quantil teórico", y="Quantil observado")
+```
+### Extração das colunas para realizar a análise de variância.
+
+Para realizar a construção do modelo para ANOVA deve-se extrair todas as colunas envolvidas na definição do modelo da mesma.
+
+```{r}
+y <- data_set |> pull(prod)
+esp<- data_set |>  pull(esp) |> as_factor()
+dens <- data_set |>  pull(dens) |> as_factor()
+trat <- interaction(esp,dens)
+bloco <- data_set |>  pull(bloco) |> as_factor()
+is.factor(trat) # verificando se trat é fator
+is.factor(bloco) # verificando se bloco é fator
+is.numeric(y) # verificando se y é numérico
+```
+### Definição do modelo
+
+O modelo da análise a ser utilizado será o mais simples (Delineamento em Blocos Casualizados).
+
+$$y_{ij} = \mu + \tau_i + \beta_j + \epsilon_{ij}$$
+
+Para analisar as pressuposições (Normalidade dos erros e Homocedasticidade), precisamos dos erros, desvios do modelo portanto, utilizamos a função `aov` - para construir o modelo da análise de variância. O resumo da análise com o quadro da ANOVA pode ser acessado com a função `anova`.
+
+```{r}
+# Substituição do outlier
+# y <- ifelse(y == outlier, new_value, y)
+
+# Definir o modelo
+mod <- aov(y ~ trat + bloco)
+anova(mod)
+```
+
+### Normalidade dos resíduos
+
+Uma vez o modelo salvo, precisamos extrair os resíduos, erros, para testar as pressuposições, estudar os outliers e definir possíveis transformações aos dados.
+
+#### Extrair os resíduos e valores preditos
+```{r}
+rs <- rstudent(mod)
+yp <- predict(mod)
+```
+
+
+#### Definir o data.frame contendo as colunas extraídas, os resíduos e valores preditos
+
+```{r}
+diagnostico <- data.frame(trat, y, yp, rs)
+glimpse(diagnostico)
+```
+#### Histograma
+```{r}
+diagnostico |> 
+  ggplot(aes(x=rs, y=..density..)) +
+  geom_histogram(color="black",fill="pink")
+
+```
+
+
+#### QQ-plot
+```{r}
+diagnostico |> 
+  ggplot(aes(sample = rs)) +
+  stat_qq()+
+  stat_qq_line()
+```
+
+#### Teste de normalidade
+
+Testando a normalidade dos resíduos e realizando a análise gráfica dos mesmos `install.packages("nortest")` caso necessário. Considere o alpha de 0,01.
+
+```{r}
+# Shapiro-Wilks
+shapiro.test(rs)
+
+# Kolmogorov-Smirnov
+lillie.test(rs)
+
+# Anderson-Darlin
+ad.test(rs)
+
+# Cramer-von Mises
+cvm.test(rs)
+```
+
+
+### Estudo de outliers
+
+Os Resíduos brutos são aqueles calculados diretamente a partir do modelo da análise de variância definido, e podem ser acessados com a função `residual``.
+
+Resíduos Padronizados (são os resíduo brutos dividido pelo erro padrão da estimativa dos resíduos). Se os erros têm distribuição normal, então aproximadamente 95% dos resíduos padronizados devem estar no intervalo de (-2,2). Resíduos fora desse intervalo podem indicar a presença de outliers. Utilize a função `rstandard` para calcular esses resíduos. 
+
+Resíduos Studentizados são considerados independentes pelo fato de serem resíduos decorrentes de procedimento leave-one-out. Para todos os efeitos, é como se o resíduo padronizado da observação i fosse calculado removendo-se o i-ésimo registro e ajustado o modelo. vantagem é que esses resíduos tem variância constante, (Var(rs) = 1) tornando muito mais fácil a procupra de outliers, ou seja, observações distantes das demais.
+
+Para ilustrar qual resíduo utilizar na análise de resíduos, representar graficamente este
+gráfico usando os três resíduos, numa mesma figura e observar o que acontece.
+
+```{r}
+res <- residuals(mod)
+rp <- rstandard(mod)
+rs <- rstudent(mod)
+ypred <- predict(mod) 
+
+data.frame(res,rp,rs,ypred) |> 
+  pivot_longer(res:rs,names_to = "residuo", values_to = "valor") |> 
+  ggplot(aes(x=ypred, y=valor, color = residuo)) +
+  geom_point() +
+  facet_wrap(~residuo, scale = "free") +
+  theme(
+    legend.position = "top"
+  )
+```
+
+#### Construir o gráfico dos resíduos studentizados vs valores preditos
+
+```{r}
+diagnostico |> 
+  ggplot(aes(x=yp, y=rs)) +
+  geom_point() +
+  geom_hline(yintercept = c(3,-3), color = "red")
+```
+Identificado o outlier, vamos substituir o valor observado em y pelo seu valor predito yp.
+
+```{r}
+diagnostico |> 
+  arrange(rs) |> slice(1) |> pull(y) -> outlier
+
+diagnostico |> 
+  arrange(rs) |> slice(1) |> pull(yp) -> new_value
+```
+
+### Homogeneidade das variâncias (homocedasticidade)
+Quatro testes podem ser empregados, o teste de Levene, o teste de Brown-Forsythe o teste de Bartlett e Box-Cox. Considere o alpha igual a 0,05.
+
+#### Testes de homocedasticidade
+
+```{r}
+# Teste clássico de Levene
+levene.test(y,trat,location="mean")
+
+# Teste Brown-Forsythe
+levene.test(y,trat)
+
+#também disponível no pacote HH
+#install.packages("HH")
+hov(y~trat)
+
+# Teste de Bartlett
+bartlett.test(y~trat)
+```
+### Transformação - Bartlett
+
+Se o teste for significativo, ou seja, rejeitamos a hipótese de homocedasticidade, os dados são heterocedasticos. A falta de homogenidade das variâncias pode ser regular ou irregular:
+
+HETEROCEDASTICIDADE IRREGULAR: devemos utilizar um teste não-paramétrico.
+HETEROCEDASTICIDADE REGULAR: existe uma relação entre a média e a variância utlizamos a tranformação 
+
+$$yt = y^{(1-b/2)}$$ 
+
+onde b é coeficiente angular do modelo de regressão linear entre o log da variância e o log da média de cada tratamento.
+
+```{r}
+# 1) Cálculo do log das variâncias e das médias por tratamentos
+df_aux <- diagnostico |> 
+  group_by(trat) |> 
+  summarise(
+    log_media = log(mean(y, na.rm = TRUE)),
+    log_variancia = log(var(y, na.rm = TRUE)),
+  )
+
+df_aux |> 
+  ggplot(aes(x=log_media, y=log_variancia)) +
+  geom_point() +
+  geom_smooth(method = "lm", se=FALSE)
+# 2) Análise de regressão linear simples de log_variancia
+# em função de log_media.
+mod_reg <- lm( log_variancia ~ log_media,
+               data = df_aux)
+summary.lm(mod_reg)
+
+# 3) Transformação, se necessária:
+b <- mod_reg$coefficients[2]
+yt <- y^(1-b/2)
+```
+
+#### Transformação - Box - Cox
+A transformação Box-Cox é uma das possíveis formas de contornar o problema de dados que não obedecem os pressupostos da análise de variância, como normalidade dos dados.
+
+```{r}
+boxcox(mod,seq(0,2,0.2))
+```
+  + se lambda não difere de 1: Dados são homocedásticos  
+  + se lambda difere de 1 (Transformação:
+
+$$\begin{cases}
+yt = y^\lambda: \text{se lambda difere de 0} \\
+yt = \log{y}: \text{se lambda não difere de 0} 
+\end{cases}$$
+
+## A análise de variância
+
+### Definição do modelo final
+```{r}
+modelo_final <- aov(y ~ bloco + esp*dens) # esp + dens + esp:dens
+anova(modelo_final)
+```
+
+**Conclusões**  
+BLOCO: Não rejeitamos H0: Bloco não controlou a heteronegeneidade local.
+ESP: Rejeitamos H0: Exite efeito de espaçamento.
+DENS: Não rejeitamos H0: Não existe efeito de densidade.
+ExD: Rejeitamos H0: Os fatores não são independentes: os efeitos principais não refletem o comportamento dos níveis dos fatores. Precisamos desdobrar a interação para estudar o comportamento de um fator DENTRO dos níveis do outro fator.
+
+### Cálculo do CV
+
+$$CV =100 \frac{\sqrt{QM_{res}}}{\hat{m}}$$
+```{r}
+sqr <- deviance(modelo_final) # soma de quadrados dos resíduos
+glr <- df.residual(modelo_final) # graus de liberdade dos resíduos
+qmr <- sqr/glr # calculando o quadrado médio dos resíduos
+media <- mean(y, na.rm = TRUE) # média geral do ensaio
+100*sqrt(qmr)/media # cálculo do CV
+```
+### Tabela de TOTAIS
+```{r}
+data_set |> 
+  group_by(esp, dens) |> 
+  summarise(
+    total = sum(prod)
+  )
+```
+### Teste de comparação múltiplas para efeito PRINCIPAL
+
+Teste de Tukey para Espaçamento (esp)
+
+```{r}
+HSD.test(modelo_final,"esp",
+         group = TRUE, console = TRUE)
+```
+Teste de Tukey para Densidade (dens)
+
+```{r}
+HSD.test(modelo_final,"dens",
+         group = TRUE, console = TRUE)
+```
+### Desdobramento do Espaçamento dentro da Densidade
+
+```{r}
+modelo_final_esp <- aov( y ~ bloco + dens/esp)
+effects(modelo_final_esp)
+summary(modelo_final_esp,
+        split = list("dens:esp" = 
+                     list(
+                       "Esp:D15" = c(1,4),
+                       "Esp:D30" = c(2,5),
+                       "Esp:D45" = c(3,6)
+                     )))
+```
+
+### Desdobramento do Densidade dentro da Espaçamento
+
+```{r}
+modelo_final_dens <- aov( y ~ bloco + esp/dens)
+effects(modelo_final_dens)
+summary(modelo_final_dens,
+        split = list("esp:dens" = 
+                     list(
+                       "Dens:E25" = c(1,4),
+                       "Dens:E50" = c(2,5),
+                       "Dens:E75" = c(3,6)
+                     )))
+```
+
+### Análise no ExpDes.pt
+```{r}
+fat2.dbc(esp,dens,bloco,y,fac.names = c("esp","dens"))
+```
+
+
+### Gráfico das interações
+
+```{r}
+data_set |> 
+  group_by(esp, dens) |> 
+  summarise(
+    media = mean(prod)
+  ) |> 
+  ggplot(aes(x=esp, y = media, 
+             color=as_factor(dens))) +
+  geom_point() +
+  geom_line()
+```
+
+```{r}
+data_set |> 
+  group_by(esp, dens) |> 
+  summarise(
+    media = mean(prod)
+  ) |> 
+  ggplot(aes(x=dens, y = media, 
+             color=as_factor(esp))) +
+  geom_point() +
+  geom_line()
+```
+
+
+
+
+
+

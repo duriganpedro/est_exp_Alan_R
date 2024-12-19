@@ -12,7 +12,6 @@ knitr::opts_chunk$set(echo = TRUE,
                       error = FALSE,
                       warning = FALSE)
 ```
-
 ### Roteiro da análise
 
   1. Download
@@ -32,6 +31,7 @@ Dados podem ser encontrados em [Climate TRACE](www.climatetrace.org). Vários ar
 ```{r}
 library(tidyverse)
 library(readxl)
+# install.packages(abjutils)
 library(abjutils)
 ```
 
@@ -40,26 +40,43 @@ library(abjutils)
 ### Criar a lista de arquivos
 
 ```{r}
-
+files_list<-list.files(
+  "../data-raw",
+  full.names=TRUE,
+  recursive=TRUE,
+  pattern="csv$")
+files_list
 ```
 
 ### Carregar apenas 01 arquivo.
 
 ```{r}
-
+read.csv(files_list[2])
 ```
 
 ### Criar uma função para ler os arquivos.
 
 ```{r}
-
+my_reader<-function(x){
+  read.csv(x) |> 
+    mutate(
+      path=x,#salvando o arquivo dentro do arquivo
+      year=lubridate::year(end_time),
+      month=lubridate::month(end_time)
+    ) |> 
+    relocate(year,month) |> 
+    filter(gas=="co2e_100yr")
+  
+}
 ```
 
 ### Aplicar a função para todos os arquivos da lista.
 
 ```{r}
+data_set<-map_df(files_list,my_reader)
+glimpse(data_set)
 
-
+data_set
 ```
 
 ### Pré-processamento
@@ -69,7 +86,27 @@ A patir da coluna `end_time`, criar o ano e o mês referente à avaliação, fil
 Criar viasualizações de dados, levando-se em consideração que para os cálculos de emissão de um local os setor de uso da terra e florestas deve ser desconsiderado.
 
 ```{r}
-
+data_set |> 
+  pull(year) |> 
+  unique()
+data_set |> 
+  filter(
+    year==2024,
+    sector!= "forestry-and-land-use"
+    ) |> 
+  group_by(source_name) |> 
+  summarise(
+    emission=sum(emissions_quantity,na.rm=TRUE)
+  ) |>
+  mutate(
+    source_name=fct_reorder(source_name,emission),
+    source_name=fct_lump(source_name,n=15, w=emission) 
+    )|> 
+  drop_na() |> 
+  
+  ggplot(aes(x=emission,y=source_name))+
+  geom_col(color="black",fill="gray")+
+  theme_bw()
 ```
 
 ### Análise estatística descritiva
